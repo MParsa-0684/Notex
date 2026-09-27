@@ -1,0 +1,31 @@
+name: notex
+services:
+  notex:
+    build:
+      context: ..
+    restart: unless-stopped
+    init: true
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 8900
+      NOTEX_DATA_DIR: /data
+    volumes:
+      - ../../Infrastructure/data/notex:/data
+    expose: ["8900"]
+    networks: [edge]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    mem_limit: 512m
+    cpus: 0.8
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:8900/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+networks:
+  edge:
+    name: arani-edge
+    external: true
